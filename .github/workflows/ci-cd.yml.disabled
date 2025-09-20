@@ -44,6 +44,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Security Scan
     needs: test
+    permissions:
+      contents: read
+      security-events: write
     
     steps:
     - uses: actions/checkout@v4
@@ -61,6 +64,7 @@ jobs:
       if: always()
       with:
         sarif_file: 'trivy-results.sarif'
+      continue-on-error: true
 
   build-and-push:
     runs-on: ubuntu-latest
