@@ -1,13 +1,10 @@
 name: Docker Build
 
-# This workflow builds and pushes Docker images to GHCR on every commit
-# Simple, focused, and reliable
-
 on:
   push:
-    branches: [ master, main, develop ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ main ]
 
 env:
   REGISTRY: ghcr.io
@@ -42,17 +39,14 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
-            type=sha,prefix={{branch}}-
+            type=sha,prefix=commit-
 
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

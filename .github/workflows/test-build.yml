@@ -1,0 +1,25 @@
+name: Test Build
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Docker Build
+        run: |
+          echo "Testing Docker build..."
+          docker build -t test-image .
+          echo "Build successful!"
+          
+      - name: Show Docker Info
+        run: |
+          docker --version
+          echo "Repository: ${{ github.repository }}"
+          echo "Actor: ${{ github.actor }}"
