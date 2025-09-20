@@ -51,13 +51,13 @@ A .NET 9 ASP.NET Core web API for Fantasy Premier League data, integrating with 
 #### Using Pre-built Images (Recommended)
 ```bash
 # Pull from GitHub Container Registry (automatically built on every commit)
-docker pull ghcr.io/justinmarshall/fplbot:latest
+docker pull ghcr.io/justinmarkmarshall/fplbot:latest
 
 # Run container
 docker run -p 8080:8080 \
   -e FOOTBALL_DATA_API_TOKEN="your-football-token" \
   -e ODDS_API_TOKEN="your-odds-token" \
-  ghcr.io/justinmarshall/fplbot:latest
+  ghcr.io/justinmarkmarshall/fplbot:latest
 ```
 
 #### Building Locally
