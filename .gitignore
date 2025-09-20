@@ -58,6 +58,9 @@ secrets.json
 .env.local
 .env.production
 
+# Keep example files
+!.env.example
+
 # API Keys and Tokens - DO NOT COMMIT
 **/api-keys.txt
 **/tokens.txt
