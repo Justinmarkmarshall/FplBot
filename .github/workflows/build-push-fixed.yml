@@ -32,7 +32,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/fplbot
+        images: ${{ env.REGISTRY }}/justinmarkmarshall/fplbot
         tags: |
           type=ref,event=branch
           type=raw,value=latest,enable={{is_default_branch}}

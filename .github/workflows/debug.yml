@@ -34,7 +34,7 @@ jobs:
           
       - name: Test Tag and Push
         run: |
-          IMAGE_NAME="ghcr.io/${{ github.repository }}:test"
+          IMAGE_NAME="ghcr.io/justinmarkmarshall/fplbot:test"
           docker tag test-image $IMAGE_NAME
           echo "Tagged as: $IMAGE_NAME"
           docker push $IMAGE_NAME
