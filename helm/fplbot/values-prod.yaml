@@ -1,0 +1,127 @@
+# Production values for fplbot
+replicaCount: 3
+
+image:
+  repository: ghcr.io/justinmarshall/fplbot
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: api.fplbot.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: fplbot-tls
+      hosts:
+        - api.fplbot.com
+
+aspnetcore:
+  environment: Production
+
+# Note: API configuration should be set via external secret management or --set-string
+config:
+  enabled: true
+  
+  # API Configuration - set these via --set-string in production
+  footballData:
+    baseUrl: "https://api.football-data.org/v4/"
+    apiToken: ""     # Set via --set-string config.footballData.apiToken=your-token
+  
+  oddsApi:
+    baseUrl: "https://api.the-odds-api.com/v4/sports/soccer_epl/odds"
+    apiToken: ""     # Set via --set-string config.oddsApi.apiToken=your-token
+  
+  appSettings:
+    Logging:
+      LogLevel:
+        Default: Warning
+        Microsoft.AspNetCore: Warning
+        FplBot: Information
+    AllowedHosts: "api.fplbot.com"
+    FootballData:
+      BaseUrl: "https://api.football-data.org/v4/"
+      # ApiToken will be set via environment variable
+    OddsAPI:
+      BaseUrl: "https://api.the-odds-api.com/v4/sports/soccer_epl/odds"
+      # ApiToken will be set via environment variable
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Production-grade health checks
+healthCheck:
+  liveness:
+    path: /health
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Node affinity for production workloads
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - fplbot
+        topologyKey: kubernetes.io/hostname
+
+# Security context
+podSecurityContext:
+  fsGroup: 2000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000

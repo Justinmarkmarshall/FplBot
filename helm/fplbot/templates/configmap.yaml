@@ -1,0 +1,11 @@
+{{- if .Values.config.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fplbot.fullname" . }}-config
+  labels:
+    {{- include "fplbot.labels" . | nindent 4 }}
+data:
+  appsettings.json: |
+    {{- .Values.config.appSettings | toJson | nindent 4 }}
+{{- end }}

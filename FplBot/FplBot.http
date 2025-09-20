@@ -1,0 +1,6 @@
+@FplBot_HostAddress = http://localhost:5161
+
+GET {{FplBot_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,140 @@
+# .NET Core / .NET Framework
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+!**/packages/build/
+*.binlog
+
+# Visual Studio
+.vs/
+*.rsuser
+*.userprefs
+.vscode/
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Core
+wwwroot/dist/
+
+# Secrets and Configuration (IMPORTANT FOR SECURITY)
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+*.secrets.json
+secrets.json
+.env
+.env.local
+.env.production
+
+# API Keys and Tokens - DO NOT COMMIT
+**/api-keys.txt
+**/tokens.txt
+**/*secret*
+**/*key*
+**/*token*
+**/*password*
+
+# Docker
+.dockerignore
+
+# Kubernetes secrets and sensitive files
+**/secrets/
+**/*-secrets.yaml
+**/*-secret.yaml
+**/secret-*.yaml
+values-prod-secrets.yaml
+values-staging-secrets.yaml
+
+# Helm deployment with secrets
+helm-deploy-with-secrets.sh
+helm-deploy-with-secrets.ps1
+deploy-prod-secrets.sh
+deploy-prod-secrets.ps1
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs
+*.swp
+*.swo
+*~
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# JetBrains IDEs
+.idea/
+
+# Local development overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Temporary files
+*.tmp
+*.temp

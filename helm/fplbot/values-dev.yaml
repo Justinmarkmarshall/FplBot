@@ -1,0 +1,77 @@
+# Development values for fplbot
+replicaCount: 1
+
+image:
+  repository: fplbot
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080
+
+ingress:
+  enabled: false
+
+aspnetcore:
+  environment: Development
+
+config:
+  enabled: true
+  
+  # API Configuration for development
+  footballData:
+    baseUrl: "https://api.football-data.org/v4/"
+    apiToken: ""     # Set via --set-string config.footballData.apiToken=your-token
+  
+  oddsApi:
+    baseUrl: "https://api.the-odds-api.com/v4/sports/soccer_epl/odds"
+    apiToken: ""     # Set via --set-string config.oddsApi.apiToken=your-token
+  
+  appSettings:
+    Logging:
+      LogLevel:
+        Default: Debug
+        Microsoft.AspNetCore: Information
+        FplBot: Debug
+    AllowedHosts: "*"
+    FootballData:
+      BaseUrl: "https://api.football-data.org/v4/"
+      # ApiToken will be set via environment variable
+    OddsAPI:
+      BaseUrl: "https://api.the-odds-api.com/v4/sports/soccer_epl/odds"
+      # ApiToken will be set via environment variable
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+# Relaxed health checks for development
+healthCheck:
+  liveness:
+    path: /health
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+# Relaxed security for development
+podSecurityContext: {}
+
+securityContext:
+  readOnlyRootFilesystem: false
+  runAsNonRoot: false

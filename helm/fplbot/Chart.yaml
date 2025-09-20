@@ -1,0 +1,17 @@
+apiVersion: v2
+name: fplbot
+description: A Helm chart for FplBot - Fantasy Premier League Bot API
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+home: https://github.com/your-org/fplbot
+sources:
+  - https://github.com/your-org/fplbot
+maintainers:
+  - name: FplBot Team
+keywords:
+  - fplbot
+  - fantasy
+  - premier-league
+  - api
+  - dotnet
