@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  fplbot:
+    image: ghcr.io/justinmarkmarshall/fplbot:latest
+    container_name: fplbot
+    ports:
+      - "8080:80"
+    environment:
+      - FOOTBALL_DATA_API_TOKEN=${FOOTBALL_DATA_API_TOKEN}
+      - ODDS_API_TOKEN=${ODDS_API_TOKEN}
+      - ASPNETCORE_ENVIRONMENT=Production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

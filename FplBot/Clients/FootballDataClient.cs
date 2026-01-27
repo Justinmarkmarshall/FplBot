@@ -237,12 +237,15 @@ namespace FplBot.Clients
 
             foreach (var team in winningTeams)
             {
-                var teamPlayers = teamsResponse.Teams.FirstOrDefault(r => r.Id == team.Item2).Squad.Where(p => p.Position != null &&
+                var teamPlayers = teamsResponse!.Teams.FirstOrDefault(r => r.Name == team.Item1)?.Squad.Where(p => p.Position != null &&
                 (p.Position.Contains("attacking", StringComparison.OrdinalIgnoreCase) ||
                     p.Position.Contains("forward", StringComparison.OrdinalIgnoreCase) || p.Position.Contains("winger", StringComparison.OrdinalIgnoreCase))).ToList().Take(10);
 
+                if (teamPlayers == null)
+                    continue;
+
                 //var url = $"fixtures?team={team.Item2}&last5";
-                foreach (var player in teamPlayers)
+                foreach (var player in teamPlayers!)
                 {
                     var play = new PlayerDto();
 
@@ -253,9 +256,12 @@ namespace FplBot.Clients
                     players.Add(play);
                 }
 
-                var defenders = teamsResponse.Teams.FirstOrDefault(r => r.Id == team.Item2).Squad.Where(p => p.Position != null &&
+                var defenders = teamsResponse!.Teams.FirstOrDefault(r => r.Name == team.Item1)?.Squad.Where(p => p.Position != null &&
         (p.Position.Contains("back", StringComparison.OrdinalIgnoreCase) ||
          p.Position.Contains("forward", StringComparison.OrdinalIgnoreCase) || p.Position.Contains("winger", StringComparison.OrdinalIgnoreCase))).ToList().Take(10);
+
+                if (defenders == null)
+                    continue;
 
                 foreach (var player in defenders)
                 {
@@ -266,8 +272,11 @@ namespace FplBot.Clients
                     players.Add(play);
                 }
 
-                var goalkeepers = teamsResponse.Teams.FirstOrDefault(r => r.Id == team.Item2).Squad.Where(p => p.Position != null &&
+                var goalkeepers = teamsResponse!.Teams.FirstOrDefault(r => r.Id == team.Item2)?.Squad.Where(p => p.Position != null &&
                 p.Position.Contains("goalkeeper", StringComparison.OrdinalIgnoreCase));
+
+                if (goalkeepers == null)
+                    continue;
 
                 foreach (var player in goalkeepers)
                 {

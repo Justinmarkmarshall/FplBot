@@ -50,13 +50,11 @@ spec:
                   name: {{ include "fplbot.fullname" . }}-secrets
                   key: football-data-base-url
             {{- end }}
-            {{- if .Values.config.footballData.apiToken }}
             - name: FOOTBALL_DATA_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "fplbot.fullname" . }}-secrets
                   key: football-data-api-token
-            {{- end }}
             {{- if .Values.config.oddsApi.baseUrl }}
             - name: ODDS_API_BASE_URL
               valueFrom:
@@ -64,13 +62,11 @@ spec:
                   name: {{ include "fplbot.fullname" . }}-secrets
                   key: odds-api-base-url
             {{- end }}
-            {{- if .Values.config.oddsApi.apiToken }}
             - name: ODDS_API_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ include "fplbot.fullname" . }}-secrets
                   key: odds-api-token
-            {{- end }}
             {{- with .Values.extraEnvVars }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
