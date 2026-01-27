@@ -8,8 +8,9 @@ image:
 
 imagePullSecrets: []
 
+# NodePort here ensures that we can be reached by clients outside of the cluster
 service:
-  type: ClusterIP
+  type: NodePort
   port: 80
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
