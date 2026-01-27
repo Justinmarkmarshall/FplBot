@@ -70,15 +70,6 @@ aspnetcore:
 config:
   enabled: true
   
-  # API Configuration - these should be provided as secrets in production
-  footballData:
-    baseUrl: ""      # Set this via --set-string config.footballData.baseUrl=https://api.football-data.org/v4/
-    apiToken: ""     # Set this via --set-string config.footballData.apiToken=your-token
-  
-  oddsApi:
-    baseUrl: ""      # Set this via --set-string config.oddsApi.baseUrl=https://api.the-odds-api.com/v4/sports/soccer_epl/odds
-    apiToken: ""     # Set this via --set-string config.oddsApi.apiToken=your-token
-  
   # Application settings that will be placed in appsettings.json
   appSettings:
     Logging:
@@ -139,3 +130,12 @@ podDisruptionBudget:
   enabled: false
   minAvailable: 1
   # maxUnavailable: 1
+
+# potenitally looking at a situation where this was never defined and therefore the secrets were never getting read in
+secrets:
+  footballData:
+    name: fplbot-api-tokens
+    key: football-data-token
+  oddsApi:
+    name: fplbot-api-tokens
+    key: odds-api-token

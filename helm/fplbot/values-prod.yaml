@@ -40,22 +40,13 @@ aspnetcore:
 config:
   enabled: true
   
-  # API Configuration - set these via --set-string in production
-  footballData:
-    baseUrl: "https://api.football-data.org/v4/"
-    apiToken: ""     # Set via --set-string config.footballData.apiToken=your-token
-  
-  oddsApi:
-    baseUrl: "https://api.the-odds-api.com/v4/sports/soccer_epl/odds"
-    apiToken: ""     # Set via --set-string config.oddsApi.apiToken=your-token
-  
   appSettings:
     Logging:
       LogLevel:
         Default: Warning
         Microsoft.AspNetCore: Warning
         FplBot: Information
-    AllowedHosts: "api.fplbot.com"
+    AllowedHosts: "*" # most robust for kube probes, internal traffic and NodePort
     FootballData:
       BaseUrl: "https://api.football-data.org/v4/"
       # ApiToken will be set via environment variable
@@ -91,7 +82,7 @@ healthCheck:
     timeoutSeconds: 10
     failureThreshold: 3
   readiness:
-    path: /health/ready
+    path: /health
     initialDelaySeconds: 10
     periodSeconds: 5
     timeoutSeconds: 5
