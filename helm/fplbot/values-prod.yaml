@@ -9,8 +9,9 @@ image:
 imagePullSecrets: []
 
 # NodePort here ensures that we can be reached by clients outside of the cluster
+# Changing this back to ClusterIP since I have now enabled the Private VPN with tailscale
 service:
-  type: NodePort
+  type: ClusterIP
   port: 80
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
