@@ -32,6 +32,11 @@ namespace FplBot.Controllers
                 listOfMatches.Add(matchDto);
             }
 
+            if (!listOfMatches.Any())
+            {
+                return NotFound("No matches found in the next 2 weeks.");
+            }
+
             await oddsClient.GetOddsForMatches(listOfMatches);
 
             var winningTeams = fplService.FindWinningTeams(listOfMatches);
