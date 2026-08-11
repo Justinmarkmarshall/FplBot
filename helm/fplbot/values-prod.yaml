@@ -27,7 +27,7 @@ ingress:
     nginx.ingress.kubernetes.io/rate-limit-window: "1m"
 
   hosts:
-    - host: fplbot.marshallab.uk
+    - host: fplbot.marshalllab.uk
       paths:
         - path: /
           pathType: Prefix
@@ -35,7 +35,7 @@ ingress:
   tls:
     - secretName: fplbot-tls
       hosts:
-        - fplbot.marshallab.uk
+        - fplbot.marshalllab.uk
 
 aspnetcore:
   environment: Production
