@@ -22,7 +22,9 @@ ingress:
 
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Cloud flare already provides the public HTTPS endpoint, and Cloudflared talks to ingress internally over HTTP
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"       
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
     nginx.ingress.kubernetes.io/rate-limit: "100"
     nginx.ingress.kubernetes.io/rate-limit-window: "1m"
 
