@@ -17,7 +17,7 @@ service:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
 
 ingress:
-  enabled: true
+  enabled: false
   className: "nginx"
 
   annotations:
@@ -38,6 +38,25 @@ ingress:
     - secretName: fplbot-tls
       hosts:
         - fplbot.marshalllab.uk
+
+httpRoute:
+  enabled: true
+
+  annotations: {}
+
+  parentRefs:
+    - name: public-gateway
+      namespace: envoy-gateway-system
+      sectionName: http
+
+  hostnames:
+    - fplbot.marshalllab.uk
+
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
 
 aspnetcore:
   environment: Production

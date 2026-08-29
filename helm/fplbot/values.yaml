@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/justinmarkmarshall/fplbot
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion
   tag: "latest"
 
@@ -61,6 +61,44 @@ ingress:
   #  - secretName: fplbot-tls
   #    hosts:
   #      - fplbot.local
+  # -- Expose the service via gateway-api HTTPRoute
+  # Requires Gateway API resources and suitable controller installed within the cluster
+  # (see: https://gateway-api.sigs.k8s.io/guides/)
+  
+httpRoute:
+  # HTTPRoute enabled.
+  enabled: true
+  # HTTPRoute annotations.
+  annotations: {}
+  # Which Gateways this Route is attached to.
+  parentRefs:
+  - name: traefik-gateway
+    sectionName: web
+    namespace: kube-system
+  # Hostnames matching HTTP header.
+  hostnames:
+  - fplbot.local
+  # List of rules and filters applied.
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+  #   filters:
+  #   - type: RequestHeaderModifier
+  #     requestHeaderModifier:
+  #       set:
+  #       - name: My-Overwrite-Header
+  #         value: this-is-the-only-value
+  #       remove:
+  #       - User-Agent
+  # - matches:
+  #   - path:
+  #       type: PathPrefix
+  #       value: /echo
+  #     headers:
+  #     - name: version
+  #       value: v2
 
 # ASP.NET Core configuration
 aspnetcore:
