@@ -55,6 +55,9 @@ namespace FplBot.Model
 
     public class Outcome
     {
+        [JsonPropertyName("point")]
+        public decimal? Point { get; set; }
+
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;
 

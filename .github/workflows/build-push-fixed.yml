@@ -6,9 +6,12 @@ on:
       - main
 
 jobs:
-  docker:
+  test-build-push:
     permissions:
       contents: read
       packages: write
 
-    uses: justinmarkmarshall/github-actions/.github/workflows/build-push-ghcr.yml@main
+    uses: justinmarkmarshall/github-actions/.github/workflows/dotnet-test-build-push.yml@main
+    with:
+      solution: FplBot.sln
+      dotnet-version: "10.0.x"

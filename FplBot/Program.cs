@@ -47,8 +47,10 @@ builder.Services.AddHttpClient("OddsClient", (sp, client) =>
 {
     var cfg = sp.GetRequiredService<IOptions<OddsClientConfig>>().Value;
     client.BaseAddress = new Uri(cfg.BaseUrl);
-});
+}).RemoveAllLoggers(); // OddsAPI authenticates in the query string; never log request URLs.
 
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IFixtureAnalysisService, FixtureAnalysisService>();
 builder.Services.AddSingleton<IFootballDataClient, FootballDataClient>();
 builder.Services.AddSingleton<IOddsClient, OddsClient>();
 builder.Services.AddSingleton<IFplService, FplService>();

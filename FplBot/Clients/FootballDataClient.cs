@@ -5,6 +5,39 @@ namespace FplBot.Clients
 {
     public class FootballDataClient(IHttpClientFactory factory) : IFootballDataClient
     {
+        public async Task<List<Model.Match>> GetUpcomingMatches(DateTime from, DateTime to, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var http = factory.CreateClient("FootballDataClient");
+
+                var query = $"competitions/PL/matches?dateFrom={from:yyyy-MM-dd}&dateTo={to:yyyy-MM-dd}";
+
+                using var response = await http.GetAsync(
+                    query, cancellationToken);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+
+                    throw new ProviderUnavailableException("FootballData");
+                } 
+                   
+                
+                var data = await response.Content.ReadFromJsonAsync<MatchesResponse>(cancellationToken);
+                
+                if (data?.Matches == null) throw new ProviderUnavailableException("FootballData");
+                
+                return data.Matches.Where(m => m.UtcDate >= from && m.UtcDate <= to
+                    && (m.Status == "SCHEDULED" || m.Status == "TIMED"))
+                    .OrderBy(m => m.UtcDate).ToList();
+            }
+            catch (Exception ex) when (ex is HttpRequestException or JsonException
+                || (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested))
+            {
+                throw new ProviderUnavailableException("FootballData");
+            }
+        }
+
         public async Task<List<Model.Match>> GetMatchesInTheNext2Weeks()
         {
             List<Model.Match> matches = new List<Model.Match>();
@@ -116,6 +149,7 @@ namespace FplBot.Clients
 
     public interface IFootballDataClient
     {
+        Task<List<Model.Match>> GetUpcomingMatches(DateTime from, DateTime to, CancellationToken cancellationToken);
         /// <summary>
         /// Default to two weeks - odds won't go further than that
         /// </summary>
