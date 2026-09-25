@@ -43,9 +43,9 @@ A .NET 10 ASP.NET Core web API for Fantasy Premier League data, integrating with
    ```
 
 4. **Test the API:**
-   - Health check: http://localhost:5000/health
-   - Premier League teams: http://localhost:5000/Prem/WinningTeams
-   - Fixture analysis: http://localhost:5000/Prem/FixtureAnalysis
+   - Health check: http://localhost:5161/health
+   - Premier League teams: http://localhost:5161/Prem/WinningTeams
+   - Fixture analysis: http://localhost:5161/Prem/FixtureAnalysis
 
 ### GET /Prem/WinningTeams
 
