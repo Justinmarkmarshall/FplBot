@@ -1,6 +1,9 @@
 using FplBot.Clients;
+using FplBot.Configuration;
 using FplBot.Model;
 using FplBot.Utilities;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace FplBot.Services;
 
@@ -10,8 +13,17 @@ public interface IFixtureAnalysisService
 }
 
 public class FixtureAnalysisService(IFootballDataClient footballDataClient, IOddsClient oddsClient,
-    TimeProvider timeProvider, ILogger<FixtureAnalysisService> logger) : IFixtureAnalysisService
+    TimeProvider timeProvider, ILogger<FixtureAnalysisService> logger, IMemoryCache cache,
+    IOptions<OddsClientConfig> options) : IFixtureAnalysisService, IDisposable
 {
+    private readonly int maxConcurrency = options.Value.BttsMaxConcurrency;
+    private readonly TimeSpan cacheTtl = TimeSpan.FromMinutes(options.Value.BttsCacheMinutes);
+    // Shared by all endpoint invocations: the limit applies to this application instance.
+    private readonly SemaphoreSlim requestSlots = new(options.Value.BttsMaxConcurrency);
+    // Fixed lock stripes coalesce concurrent misses without an ever-growing per-event lock map.
+    private readonly SemaphoreSlim[] eventLocks = Enumerable.Range(0, 64).Select(_ => new SemaphoreSlim(1)).ToArray();
+    private sealed record BttsResult(MatchOddsResponse? Odds);
+
     public async Task<List<FixtureAnalysisDto>> AnalyzeUpcomingFixtures(CancellationToken cancellationToken)
     {
         var from = timeProvider.GetUtcNow().UtcDateTime;
@@ -38,10 +50,14 @@ public class FixtureAnalysisService(IFootballDataClient footballDataClient, IOdd
             events = [];
         }
 
-        var results = new List<FixtureAnalysisDto>();
-        var bttsCache = new Dictionary<string, MatchOddsResponse?>();
-        foreach (var fixture in fixtures)
+        var results = new List<FixtureAnalysisDto>[fixtures.Count];
+        await Parallel.ForEachAsync(Enumerable.Range(0, fixtures.Count), new ParallelOptions
         {
+            MaxDegreeOfParallelism = maxConcurrency,
+            CancellationToken = cancellationToken
+        }, async (index, token) =>
+        {
+            var fixture = fixtures[index];
             var matched = FixtureMatcher.FindMatch(fixture, events);
             if (matched == null)
             {
@@ -49,23 +65,12 @@ public class FixtureAnalysisService(IFootballDataClient footballDataClient, IOdd
             }
             else if (!string.IsNullOrWhiteSpace(matched.Id))
             {
-                if (!bttsCache.TryGetValue(matched.Id, out var extra))
+                var extra = await GetCachedBtts(matched.Id, token);
+                // Revalidate on cache hits too: kickoff/team data may have changed since retrieval.
+                if (extra != null && (extra.Id != matched.Id || FixtureMatcher.FindMatch(fixture, [extra]) == null))
                 {
-                    try
-                    {
-                        extra = await oddsClient.GetBothTeamsToScoreOdds(matched.Id, cancellationToken);
-                        if (extra.Id != matched.Id || FixtureMatcher.FindMatch(fixture, [extra]) == null)
-                        {
-                            logger.LogWarning("BTTS event mismatch for fixture {FixtureId}.", fixture.Id);
-                            extra = null;
-                        }
-                    }
-                    catch (ProviderUnavailableException)
-                    {
-                        logger.LogWarning("BTTS unavailable for fixture {FixtureId}; retaining other markets.", fixture.Id);
-                        extra = null;
-                    }
-                    bttsCache[matched.Id] = extra;
+                    logger.LogWarning("BTTS event mismatch for fixture {FixtureId}.", fixture.Id);
+                    extra = null;
                 }
                 if (extra != null)
                 {
@@ -82,8 +87,55 @@ public class FixtureAnalysisService(IFootballDataClient footballDataClient, IOdd
                     };
                 }
             }
-            results.AddRange(FixtureAnalysisCalculator.Analyze(fixture, matched));
+            results[index] = FixtureAnalysisCalculator.Analyze(fixture, matched);
+        });
+        return results.SelectMany(rows => rows).ToList();
+    }
+
+    private async Task<MatchOddsResponse?> GetCachedBtts(string eventId, CancellationToken cancellationToken)
+    {
+        var key = ("FixtureAnalysis.Btts", eventId);
+        if (cache.TryGetValue<BttsResult>(key, out var cached)) return cached!.Odds;
+
+        var eventLock = eventLocks[(uint)StringComparer.Ordinal.GetHashCode(eventId) % (uint)eventLocks.Length];
+        await eventLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (cache.TryGetValue<BttsResult>(key, out cached)) return cached!.Odds;
+            await requestSlots.WaitAsync(cancellationToken);
+            try
+            {
+                MatchOddsResponse? extra;
+                try
+                {
+                    extra = await oddsClient.GetBothTeamsToScoreOdds(eventId, cancellationToken);
+                    if (extra.Id != eventId)
+                    {
+                        logger.LogWarning("BTTS event mismatch for requested event {EventId}.", eventId);
+                        extra = null;
+                    }
+                    else if (!extra.Bookmakers.Any(b => b.Markets.Any(m => m.Key == "btts")))
+                        extra = null;
+                }
+                catch (ProviderUnavailableException)
+                {
+                    logger.LogWarning("BTTS unavailable for event {EventId}; retaining other markets.", eventId);
+                    extra = null;
+                }
+                // Cache a wrapper so an intentional unavailable result is distinct from a miss.
+                // Caller cancellation propagates and never populates the cache.
+                cancellationToken.ThrowIfCancellationRequested();
+                cache.Set(key, new BttsResult(extra), cacheTtl);
+                return extra;
+            }
+            finally { requestSlots.Release(); }
         }
-        return results;
+        finally { eventLock.Release(); }
+    }
+
+    public void Dispose()
+    {
+        requestSlots.Dispose();
+        foreach (var eventLock in eventLocks) eventLock.Dispose();
     }
 }

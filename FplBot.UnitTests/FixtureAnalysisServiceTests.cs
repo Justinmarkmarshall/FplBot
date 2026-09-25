@@ -6,6 +6,7 @@ using FplBot.Controllers;
 using FplBot.Model;
 using FplBot.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
@@ -48,7 +49,8 @@ public class FixtureAnalysisServiceTests
         var factory = new Factory(handler, oddsUrl);
         var football = new FootballDataClient(factory);
         var odds = new OddsClient(Options.Create(new OddsClientConfig { BaseUrl = oddsUrl, ApiToken = "test-token" }), factory);
-        return (new FixtureAnalysisService(football, odds, new Clock(), NullLogger<FixtureAnalysisService>.Instance), football, odds);
+        return (new FixtureAnalysisService(football, odds, new Clock(), NullLogger<FixtureAnalysisService>.Instance,
+            new MemoryCache(new MemoryCacheOptions()), Options.Create(new OddsClientConfig())), football, odds);
     }
 
     [TestCase("https://odds.test/v4/sports/soccer_epl/odds")]

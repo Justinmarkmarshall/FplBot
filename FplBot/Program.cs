@@ -50,6 +50,11 @@ builder.Services.AddHttpClient("OddsClient", (sp, client) =>
 }).RemoveAllLoggers(); // OddsAPI authenticates in the query string; never log request URLs.
 
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddMemoryCache();
+builder.Services.AddOptions<OddsClientConfig>()
+    .Validate(c => c.BttsCacheMinutes > 0, "OddsAPI:BttsCacheMinutes must be positive.")
+    .Validate(c => c.BttsMaxConcurrency is >= 1 and <= 16, "OddsAPI:BttsMaxConcurrency must be between 1 and 16.")
+    .ValidateOnStart();
 builder.Services.AddSingleton<IFixtureAnalysisService, FixtureAnalysisService>();
 builder.Services.AddSingleton<IFootballDataClient, FootballDataClient>();
 builder.Services.AddSingleton<IOddsClient, OddsClient>();

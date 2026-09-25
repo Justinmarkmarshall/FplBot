@@ -176,6 +176,32 @@ teams. Subscription access, remaining quota and bookmaker coverage determine
 whether BTTS is available. No player-prop markets are requested. These requests
 consume the configured subscription's quota.
 
+BTTS responses are cached by Odds API event ID in application memory for 30 minutes
+by default, across endpoint requests. Unavailable responses (including failed requests
+and responses with no BTTS market) are cached for the same TTL, so temporary failures
+may remain unavailable until expiration. Canceled requests are not cached.
+Concurrent requests for an uncached event share a fetch. Cache misses are fetched in
+parallel with a default limit of four active BTTS requests across all endpoint calls
+in the application instance; response fixture order is preserved.
+
+Configure the cache lifetime and concurrency under `OddsAPI`:
+
+```json
+{
+  "OddsAPI": {
+    "BttsCacheMinutes": 30,
+    "BttsMaxConcurrency": 4
+  }
+}
+```
+
+Equivalent environment variables are `OddsAPI__BttsCacheMinutes` and
+`OddsAPI__BttsMaxConcurrency`. The TTL must be positive; concurrency must be between
+1 and 16. Invalid settings fail startup. Settings take effect on application restart.
+The cache and concurrency limit are per process, not shared between deployment
+replicas, and the cache is cleared on restart. FootballData and bulk h2h/totals
+requests still run for each endpoint invocation; this cache covers BTTS only.
+
 Matching uses home and away names normalized through a central explicit alias map,
 plus kickoff timestamps within 15 minutes. IDs are never compared across providers.
 Unknown names require an exact normalized match; ambiguous or unmatched fixtures
