@@ -493,7 +493,7 @@ The application uses a layered configuration approach:
 
 ## 📦 Dependencies
 
-- ASP.NET Core 9.0
+- ASP.NET Core 10.0
 - Microsoft.Extensions.Http
 - Microsoft.AspNetCore.OpenApi
 - Scalar.AspNetCore
