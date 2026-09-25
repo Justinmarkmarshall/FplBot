@@ -16,6 +16,36 @@ namespace FplBot.Clients
 
         private readonly OddsClientConfig config = options.Value;
 
+        public Task<List<MatchOddsResponse>> GetFixtureOdds(CancellationToken cancellationToken) =>
+            GetAnalysisOdds<List<MatchOddsResponse>>("?", "h2h,totals", cancellationToken);
+
+        public Task<MatchOddsResponse> GetBothTeamsToScoreOdds(string eventId, CancellationToken cancellationToken)
+        {
+            // Resolve alongside /odds, supporting configured URLs with or without a trailing slash.
+            var root = new Uri(config.BaseUrl.TrimEnd('/'));
+            var eventUrl = new Uri(root, $"events/{Uri.EscapeDataString(eventId)}/odds");
+            return GetAnalysisOdds<MatchOddsResponse>(eventUrl.AbsoluteUri + "?", "btts", cancellationToken);
+        }
+
+        private async Task<T> GetAnalysisOdds<T>(string path, string markets, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var http = factory.CreateClient("OddsClient");
+                using var response = await http.GetAsync(
+                    $"{path}apiKey={Uri.EscapeDataString(config.ApiToken)}&regions=uk&oddsFormat=decimal&markets={markets}",
+                    cancellationToken);
+                if (!response.IsSuccessStatusCode) throw new ProviderUnavailableException("OddsAPI");
+                var data = await response.Content.ReadFromJsonAsync<T>(cancellationToken);
+                return data ?? throw new ProviderUnavailableException("OddsAPI");
+            }
+            catch (Exception ex) when (ex is HttpRequestException or JsonException
+                || (ex is OperationCanceledException && !cancellationToken.IsCancellationRequested))
+            {
+                throw new ProviderUnavailableException("OddsAPI");
+            }
+        }
+
         public async Task<List<MatchOddsDto>> GetOddsForMatches(List<MatchOddsDto> matches)
         {
             try
@@ -65,6 +95,8 @@ namespace FplBot.Clients
 
     public interface IOddsClient
     {
+        Task<List<MatchOddsResponse>> GetFixtureOdds(CancellationToken cancellationToken);
+        Task<MatchOddsResponse> GetBothTeamsToScoreOdds(string eventId, CancellationToken cancellationToken);
         public Task<List<MatchOddsDto>> GetOddsForMatches(List<MatchOddsDto> matches);
     }
 }

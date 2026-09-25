@@ -9,6 +9,7 @@
 
         public string Opponent { get; set; } = string.Empty;
 
-        public decimal WinProbability { get; set; } = 0;
+        [System.Text.Json.Serialization.JsonPropertyName("winPercentage")]
+        public int WinProbability { get; set; } = 0;
     }
 }

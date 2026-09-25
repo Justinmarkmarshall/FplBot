@@ -10,11 +10,35 @@ namespace FplBot.Controllers
     [Route("[controller]")]
     public class PremController(IFootballDataClient footballDataClient, IOddsClient oddsClient, IFplService fplService) : ControllerBase
     {
+        [HttpGet("FixtureAnalysis")]
+        public async Task<ActionResult<List<FixtureAnalysisDto>>> GetFixtureAnalysis(
+            [FromServices] IFixtureAnalysisService analysisService, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return Ok(await analysisService.AnalyzeUpcomingFixtures(cancellationToken));
+            }
+            catch (ProviderUnavailableException)
+            {
+                return Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Fixture data is temporarily unavailable.");
+            }
+        }
 
         [HttpGet("WinningTeams")]
-        public async Task<ActionResult<List<WinningTeamDto>>> GetMostWinningTeamsInTheNext2Weeks()
+        public async Task<ActionResult<List<WinningTeamDto>>> GetMostWinningTeamsInTheNext30Days(CancellationToken cancellationToken = default)
         {
-            var result = await footballDataClient.GetMatchesInTheNext2Weeks();
+            var from = DateTime.UtcNow;
+            List<Match> result;
+            try
+            {
+                result = await footballDataClient.GetUpcomingMatches(from, from.AddDays(30), cancellationToken);
+            }
+            catch (ProviderUnavailableException)
+            {
+                return Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Fixture data is temporarily unavailable.");
+            }
 
             var listOfMatches = new List<MatchOddsDto>();
 
@@ -34,7 +58,7 @@ namespace FplBot.Controllers
 
             if (!listOfMatches.Any())
             {
-                return NotFound("No matches found in the next 2 weeks.");
+                return NotFound("No matches found in the next 30 days.");
             }
 
             await oddsClient.GetOddsForMatches(listOfMatches);

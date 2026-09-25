@@ -38,7 +38,7 @@ namespace FplBot.Services
                     var winningMatch = new MatchDto()
                     {
                         MatchDay = match.MatchDay,
-                        WinProbability = match.HomePrice.CalculateWinPercentage(),
+                        WinProbability = Percentage.Round(match.HomePrice.CalculateWinPercentage()),
                         Opponent = match.AwayTeam
                     };
 
@@ -63,7 +63,7 @@ namespace FplBot.Services
                     var winningMatch = new MatchDto()
                     {
                         MatchDay = match.MatchDay,
-                        WinProbability = match.AwayPrice.CalculateWinPercentage(),
+                        WinProbability = Percentage.Round(match.AwayPrice.CalculateWinPercentage()),
                         Opponent = match.HomeTeam
                     };
 
